@@ -10,10 +10,10 @@ def transform_day_of_week(day_number):
     return days_map.get(day_number, "Dia inválido")
 
 
-def transform_group(group_number):
-    groups_map = {
+def transform_group(turma_number):
+    turma_map = {
         0: "A",
         1: "B",
         2: "C"
     }
-    return groups_map.get(group_number, "Grupo inválido")
+    return turma_map.get(turma_number, "Grupo inválido")

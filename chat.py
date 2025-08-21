@@ -16,7 +16,7 @@ from queries import build_system_instruction
 # ===== Customization knobs =====
 PHRASE_TIME_LIMIT = 12
 PAUSE_THRESHOLD = 1.3
-NON_SPEAKING_DURATION = 0.9
+NON_SPEAKING_DURATION = 0.7
 CAPTURE_MULTI_CHUNKS = False
 MAX_TOTAL_CAPTURE = 5
 MAX_INTER_SILENCE = 1.5
@@ -52,7 +52,7 @@ def build_schedule_summary() -> str:
     lines = []
     # We keep original order (or could sort by day/time)
     for c in CLASSES_DATA:
-        grupo_letra = transform_group(c.get("group"))
+        turma_letra = transform_group(c.get("turma"))
         dia = c.get("dayOfWeek", "").capitalize()
         hora = c.get("timeIn", "")
         prof = c.get("professorName", "")
@@ -60,7 +60,7 @@ def build_schedule_summary() -> str:
         andar = c.get("roomFloor", "")
         materia = c.get("subjectName", "")
         lines.append(
-            f"- {dia}: {hora} - {materia} (Prof. {prof}), Grupo {grupo_letra}, Sala {sala}, Andar {andar}"
+            f"- {dia}: {hora} - {materia} (Prof. {prof}), Turma {turma_letra}, Sala {sala}, Andar {andar}"
         )
     return "\n".join(lines)
 

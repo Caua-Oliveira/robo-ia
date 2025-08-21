@@ -1,7 +1,7 @@
 [
   {
     "timeIn": "08:00",
-    "group": 0,
+    "turma": 0,
     "dayOfWeek": "segunda",
     "professorName": "Carlos Silva",
     "roomNumber": "201",
@@ -10,7 +10,7 @@
   },
   {
     "timeIn": "10:00",
-    "group": 1,
+    "turma": 1,
     "dayOfWeek": "segunda",
     "professorName": "Marina Costa",
     "roomNumber": "305",
@@ -19,7 +19,7 @@
   },
   {
     "timeIn": "08:00",
-    "group": 2,
+    "turma": 2,
     "dayOfWeek": "terca",
     "professorName": "Carlos Silva",
     "roomNumber": "201",
@@ -28,7 +28,7 @@
   },
   {
     "timeIn": "14:00",
-    "group": 0,
+    "turma": 0,
     "dayOfWeek": "quarta",
     "professorName": "Joana Prado",
     "roomNumber": "110",
@@ -37,7 +37,7 @@
   },
   {
     "timeIn": "16:00",
-    "group": 1,
+    "turma": 1,
     "dayOfWeek": "quinta",
     "professorName": "Ricardo Nunes",
     "roomNumber": "210",
@@ -46,7 +46,7 @@
   },
   {
     "timeIn": "18:00",
-    "group": 2,
+    "turma": 2,
     "dayOfWeek": "sexta",
     "professorName": "Marina Costa",
     "roomNumber": "305",

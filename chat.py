@@ -16,7 +16,7 @@ from queries import build_system_instruction
 # ===== Customization knobs =====
 PHRASE_TIME_LIMIT = 12        # Max seconds to record each question
 PAUSE_THRESHOLD = 1.3         # Silence length that ends the question
-NON_SPEAKING_DURATION = 0.7   # Allowed start/end silence padding
+NON_SPEAKING_DURATION = 0.9   # Allowed start/end silence padding
 #MAX_TOTAL_CAPTURE = 5
 #MAX_INTER_SILENCE = 1.5
 
@@ -83,7 +83,7 @@ def start_chat():
 
     CHAT_HISTORY.append({"role": "system", "content": system_instruction})
 
-    print("Cleiton online (modo respostas naturais).")
+    print("Cleiton online.")
 
     with sr.Microphone() as mic:
         rec.adjust_for_ambient_noise(mic)

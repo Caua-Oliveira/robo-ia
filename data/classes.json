@@ -1,0 +1,56 @@
+[
+  {
+    "timeIn": "08:00",
+    "group": 0,
+    "dayOfWeek": "segunda",
+    "professorName": "Carlos Silva",
+    "roomNumber": "201",
+    "roomFloor": "2",
+    "subjectName": "Programação I"
+  },
+  {
+    "timeIn": "10:00",
+    "group": 1,
+    "dayOfWeek": "segunda",
+    "professorName": "Marina Costa",
+    "roomNumber": "305",
+    "roomFloor": "3",
+    "subjectName": "Cálculo I"
+  },
+  {
+    "timeIn": "08:00",
+    "group": 2,
+    "dayOfWeek": "terca",
+    "professorName": "Carlos Silva",
+    "roomNumber": "201",
+    "roomFloor": "2",
+    "subjectName": "Programação I"
+  },
+  {
+    "timeIn": "14:00",
+    "group": 0,
+    "dayOfWeek": "quarta",
+    "professorName": "Joana Prado",
+    "roomNumber": "110",
+    "roomFloor": "1",
+    "subjectName": "Estruturas de Dados"
+  },
+  {
+    "timeIn": "16:00",
+    "group": 1,
+    "dayOfWeek": "quinta",
+    "professorName": "Ricardo Nunes",
+    "roomNumber": "210",
+    "roomFloor": "2",
+    "subjectName": "Banco de Dados"
+  },
+  {
+    "timeIn": "18:00",
+    "group": 2,
+    "dayOfWeek": "sexta",
+    "professorName": "Marina Costa",
+    "roomNumber": "305",
+    "roomFloor": "3",
+    "subjectName": "Cálculo I"
+  }
+]

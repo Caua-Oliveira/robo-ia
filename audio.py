@@ -39,12 +39,7 @@ def speech_to_text(audio):
         print("Falha no reconhecimento de voz " + str(e))
         return ""
 
-def text_to_speech(text, speed=1.0):
-    """
-    Converte texto em fala usando gTTS.
-    Observação: gTTS não suporta ajuste direto de velocidade.
-    O parâmetro speed é ignorado aqui, mas mantido para compatibilidade.
-    """
+def text_to_speech(text):
     print(text)
     try:
         tts = gTTS(text=text, lang='pt', tld='com.br')

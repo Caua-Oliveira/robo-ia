@@ -1,0 +1,41 @@
+{
+  "coordenacao": {
+    "engenharias/computacao": {
+      "coordenador": "Prof. Caio",
+      "atendimentos": {
+        "segunda": {
+          "inicio": "08:00",
+          "fim": "12:00"
+        },
+        "terca": {
+          "inicio": "14:00",
+          "fim": "19:30"
+        },
+        "quinta": {
+          "inicio": "08:00",
+          "fim": "12:00"
+        }
+      }
+    }
+  },
+  "locais": {
+    "laboratorios_informatica": {
+      "predio": 1,
+      "andar": 1
+    },
+    "nite_2": {
+      "predio": 1,
+      "andar": 2
+    },
+    "nite": {
+      "predio": 1,
+      "andar": 4,
+      "informacoes_adicionais": "Na direita após a entrada"
+    },
+    "centro_de_carreiras": {
+      "predio": 1,
+      "andar": 4,
+      "informacoes_adicionais": "Na esquerda após a entrada, depois da cantina"
+    }
+  }
+}

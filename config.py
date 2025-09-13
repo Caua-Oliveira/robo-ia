@@ -2,7 +2,7 @@ import speech_recognition as sr
 import google.generativeai as genai
 
 
-GEMINI_API_KEY = "AIzaSyAegDM89dCDTPw5Io07nOoowKr9TaYWXw4"
+GEMINI_API_KEY = "SUA_CHAVE_DE_API_AQUI"
 genai.configure(api_key=GEMINI_API_KEY)
 MODEL_NAME = "gemini-2.5-flash-lite"
 

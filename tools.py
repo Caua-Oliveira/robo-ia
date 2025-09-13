@@ -1,6 +1,13 @@
 import json
 from pathlib import Path
 
+""" 
+    Funções auxiliares para obter informações específicas de um arquivo JSON.
+    Usado pelo Gemini para responder perguntas do usuário.
+    Necessário para não sobrecarregar o contexto do modelo com muitos dados.
+    Pode ser expandido com mais funções mais especifícas como "get_locais(local: str)" para obter detalhes de um local específico.
+"""
+
 def _get_json_data():
     """Função interna para ler e carregar o arquivo JSON."""
     data_path = Path(__file__).parent / "data" / "context.json"

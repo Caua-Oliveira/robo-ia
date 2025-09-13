@@ -1,9 +1,8 @@
-from chat import start_chat
+from chat import start_chat_vad
 
 
 def main():
-    start_chat()
-
+    start_chat_vad()
 
 if __name__ == "__main__":
     main()

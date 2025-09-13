@@ -1,77 +1,113 @@
-import json
-import re
 import sys
-import time
-import google.generativeai as genai
-import speech_recognition as sr
-
-from config import rec, MODEL_NAME
+import re
+import pyaudio
+import webrtcvad
+from config import *
 from audio import speech_to_text, text_to_speech
 from queries import build_system_instruction
 from tools import get_locais, get_coordenacao, AVAILABLE_TOOLS
 
-# ===== Customization knobs =====
-PHRASE_TIME_LIMIT = 12
-PAUSE_THRESHOLD = 1.3
-NON_SPEAKING_DURATION = 0.9
+# Regex para detectar a frase de ativação "Ei Cleiton" ou "Cleiton"
 USE_ACTIVATION_PHRASE = True
 ACTIVATION_REGEX = re.compile(r'^\s*(?:e(?:\s*a[ií]|i)\s+cleiton|cleiton)\b[\s,]*', re.IGNORECASE)
 
-CHAT_HISTORY = []
 USER_QUESTIONS = []
 chat_session = None
+MAX_USER_TURNS = 2
 
 
-def start_chat():
+def listen_with_vad() -> sr.AudioData | None:
+    """
+    Escuta a fala usando VAD e retorna um objeto AudioData para transcrição.
+    """
+    p = pyaudio.PyAudio()
+    vad = webrtcvad.Vad(VAD_AGGRESSIVENESS)
+
+    stream = p.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=VAD_SAMPLE_RATE,
+        input=True,
+        frames_per_buffer=VAD_CHUNK_SIZE
+    )
+
+    print("Ouvindo...")
+    started = False
+    speech_frames = []
+    silent_chunks = 0
+
+    while True:
+        audio_chunk = stream.read(VAD_CHUNK_SIZE)
+        is_speech = vad.is_speech(audio_chunk, VAD_SAMPLE_RATE)
+
+        if not started and is_speech:
+            print("Fala detectada, gravando...")
+            started = True
+            speech_frames.append(audio_chunk)
+        elif started and is_speech:
+            speech_frames.append(audio_chunk)
+            silent_chunks = 0
+        elif started and not is_speech:
+            silent_chunks += 1
+            speech_frames.append(audio_chunk)
+            if silent_chunks > VAD_PADDING_CHUNKS:
+                print("Silêncio detectado, processando...")
+                break
+
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    if not speech_frames:
+        return None
+
+    audio_data_bytes = b''.join(speech_frames)
+    return sr.AudioData(
+        frame_data=audio_data_bytes,
+        sample_rate=VAD_SAMPLE_RATE,
+        sample_width=2
+    )
+
+
+def start_chat_vad():
     global chat_session
 
-    system_instruction = build_system_instruction()
-    rec.pause_threshold = PAUSE_THRESHOLD
-    rec.non_speaking_duration = NON_SPEAKING_DURATION
-
-    # Informa ao modelo quais ferramentas ele pode usar
     model = genai.GenerativeModel(
         model_name=MODEL_NAME,
-        system_instruction=system_instruction,
+        system_instruction=build_system_instruction(),
         tools=[get_locais, get_coordenacao]
     )
     chat_session = model.start_chat(history=[])
-
     print("Cleiton online.")
 
-    with sr.Microphone() as mic:
-        rec.adjust_for_ambient_noise(mic)
-        while True:
-            try:
-                text = listen_and_return_text(mic)
-                if not text: continue
+    while True:
+        try:
+            audio_data = listen_with_vad()
+            if not audio_data:
+                continue
 
-                if "cleiton sair" in text.lower():
-                    text_to_speech("Encerrando. Até logo!")
-                    sys.exit()
+            text = speech_to_text(audio_data)
+            if not text:
+                continue
 
-                question = extract_question(text)
-                if not question: continue
+            if "cleiton sair" in text.lower():
+                text_to_speech("Encerrando. Até logo!")
+                sys.exit()
 
-                register_and_print_question(question)
-                response = generate_prompt(question)
-                if response:
-                    text_to_speech(response)
+            question = extract_question(text)
+            if not question:
+                continue
 
-            except sr.WaitTimeoutError:
-                pass
-            except KeyboardInterrupt:
-                print("Encerrando...")
-                break
-            except Exception as e:
-                print(f"Erro inesperado: {e}")
+            register_and_print_question(question)
+            response = generate_prompt(question)
+            if response:
+                text_to_speech(response)
 
-
-def listen_and_return_text(mic: sr.Microphone) -> str:
-    print("Ouvindo...")
-    audio = rec.listen(mic, timeout=5, phrase_time_limit=PHRASE_TIME_LIMIT)
-    print("Processando...")
-    return speech_to_text(audio)
+        except KeyboardInterrupt:
+            print("\nEncerrando...")
+            break
+        except Exception as e:
+            print(f"Erro inesperado no loop principal: {e}")
 
 
 def extract_question(text: str) -> str:
@@ -79,11 +115,13 @@ def extract_question(text: str) -> str:
         return text.strip()
     m = ACTIVATION_REGEX.match(text)
     if not m: return ""
-    return text[m.end():].strip() or "Olá" # Se só disse "cleiton", troca por "Olá"
+    return text[m.end():].strip() or "Olá"
 
 
 def register_and_print_question(question: str):
     USER_QUESTIONS.append(question)
+    if len(USER_QUESTIONS) > 3:
+        USER_QUESTIONS.pop(0)
     print(f"Pergunta #{len(USER_QUESTIONS)}: {question}")
 
 
@@ -92,26 +130,25 @@ def generate_prompt(user_question: str) -> str:
     if not chat_session:
         raise RuntimeError("Sessão Gemini não inicializada.")
 
+    # Limpa o histórico se exceder o número máximo de turnos (Bom para evitar estouro de contexto)
+    if len(chat_session.history) > MAX_USER_TURNS * 2:
+        chat_session.history = []
+
     print(f"Enviando ao LLM: {user_question}")
     print("Pensando...")
-
     try:
-        # 1. Envia a mensagem do usuário
         response = chat_session.send_message(user_question)
-
-        # 2. Verifica se a IA solicitou uma ferramenta
         function_call = response.candidates[0].content.parts[0].function_call
+
         if not function_call:
             return (response.text or "").strip()
 
-        # 3. Executa a ferramenta solicitada
         tool_name = function_call.name
         if tool_name in AVAILABLE_TOOLS:
             print(f"IA solicitou a ferramenta: {tool_name}")
             tool_function = AVAILABLE_TOOLS[tool_name]
             tool_result = tool_function()
 
-            # 4. Envia o resultado da ferramenta de volta para a IA
             function_response_part = {
                 "function_response": {
                     "name": tool_name,
@@ -126,7 +163,3 @@ def generate_prompt(user_question: str) -> str:
     except Exception as e:
         print(f"Erro ao gerar resposta: {e}")
         return "Desculpe, tive um problema ao processar sua pergunta."
-
-
-if __name__ == "__main__":
-    start_chat()

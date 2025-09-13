@@ -5,10 +5,9 @@ import keyboard
 import warnings
 from gtts import gTTS
 
-# Ignore deprecation warnings
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# Configure audio file path
 AUDIO_FILE_PATH = Path(__file__).parent / "audios" / "output.mp3"
 OUTPUT_DIR = AUDIO_FILE_PATH.parent
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)

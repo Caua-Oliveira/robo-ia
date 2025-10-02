@@ -78,7 +78,7 @@ def start_chat_vad():
         tools=[get_locais, get_coordenacao]
     )
     chat_session = model.start_chat(history=[])
-    print("Cleiton online.")
+    print("Jorgina online.")
 
     while True:
         try:
@@ -90,7 +90,7 @@ def start_chat_vad():
             if not text:
                 continue
 
-            if "cleiton sair" in text.lower():
+            if "jorgina sair" in text.lower():
                 text_to_speech("Encerrando. Até logo!")
                 sys.exit()
             print(text)
@@ -157,7 +157,7 @@ def generate_prompt(user_question: str) -> str:
                 }
             }
 
-            # --- LÓGICA DE NOVA TENTATIVA ---
+            # --- Espera pela resposta da IA ---
             MAX_RETRIES = 6
             for attempt in range(MAX_RETRIES):
                 print(f"Enviando resultado da ferramenta para a IA (Tentativa {attempt + 1}/{MAX_RETRIES})...")

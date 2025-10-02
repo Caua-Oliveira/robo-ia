@@ -26,12 +26,12 @@
     "nite": {
       "predio": 1,
       "andar": 4,
-      "informacoes_adicionais": "Na direita após a entrada"
+      "direcoes ": "Na direita após a entrada"
     },
     "centro_de_carreiras": {
       "predio": 1,
       "andar": 4,
-      "informacoes_adicionais": "Na esquerda após a entrada, depois da cantina"
+      "direcoes": "Na esquerda após a entrada, depois da cantina"
     }
   }
 }

@@ -3,13 +3,13 @@ import re
 import pyaudio
 import webrtcvad
 from config import *
-from audio import speech_to_text, text_to_speech
+from audio import speech_to_text, text_to_speech, text_to_speech_genai
 from queries import build_system_instruction
 from tools import get_locais, get_coordenacao, AVAILABLE_TOOLS
 
 # Regex para detectar a frase de ativação "Ei Cleiton" ou "Cleiton"
 USE_ACTIVATION_PHRASE = True
-ACTIVATION_REGEX = re.compile(r'^\s*(?:e(?:\s*a[ií]|i)\s+cleiton|cleiton)\b[\s,]*', re.IGNORECASE)
+ACTIVATION_REGEX = re.compile(r'^\s*(?:e(?:\s*a[ií]|i)\s|jorgina|georgina|regina|vagina )\b[\s,]*', re.IGNORECASE)
 
 USER_QUESTIONS = []
 chat_session = None
@@ -93,7 +93,7 @@ def start_chat_vad():
             if "cleiton sair" in text.lower():
                 text_to_speech("Encerrando. Até logo!")
                 sys.exit()
-
+            print(text)
             question = extract_question(text)
             if not question:
                 continue
@@ -130,7 +130,6 @@ def generate_prompt(user_question: str) -> str:
     if not chat_session:
         raise RuntimeError("Sessão Gemini não inicializada.")
 
-    # Limpa o histórico se exceder o número máximo de turnos (Bom para evitar estouro de contexto)
     if len(chat_session.history) > MAX_USER_TURNS * 2:
         chat_session.history = []
 
@@ -138,12 +137,14 @@ def generate_prompt(user_question: str) -> str:
     print("Pensando...")
     try:
         response = chat_session.send_message(user_question)
-        function_call = response.candidates[0].content.parts[0].function_call
 
-        if not function_call:
+        # Se a resposta não for uma chamada de ferramenta, apenas retorne o texto.
+        if not response.candidates[0].content.parts or not response.candidates[0].content.parts[0].function_call:
             return (response.text or "").strip()
 
+        function_call = response.candidates[0].content.parts[0].function_call
         tool_name = function_call.name
+
         if tool_name in AVAILABLE_TOOLS:
             print(f"IA solicitou a ferramenta: {tool_name}")
             tool_function = AVAILABLE_TOOLS[tool_name]
@@ -155,8 +156,28 @@ def generate_prompt(user_question: str) -> str:
                     "response": {"result": tool_result},
                 }
             }
-            response = chat_session.send_message(function_response_part)
-            return (response.text or "").strip()
+
+            # --- LÓGICA DE NOVA TENTATIVA ---
+            MAX_RETRIES = 6
+            for attempt in range(MAX_RETRIES):
+                print(f"Enviando resultado da ferramenta para a IA (Tentativa {attempt + 1}/{MAX_RETRIES})...")
+                response = chat_session.send_message(function_response_part)
+
+                # Verifica se a resposta recebida é válida e contém texto
+                if response.candidates and response.candidates[0].content.parts and hasattr(
+                        response.candidates[0].content.parts[0], 'text'):
+                    final_text = "".join(
+                        part.text for part in response.candidates[0].content.parts if hasattr(part, 'text'))
+                    if final_text.strip():
+                        return final_text.strip()  # Sucesso, retorna a resposta
+
+                # Se a resposta não for válida, informa e o loop continuará para a próxima tentativa
+                print(f"A IA retornou uma resposta vazia. Tentando novamente...")
+
+            # Se o loop terminar sem sucesso após todas as tentativas
+            print("A IA não conseguiu gerar uma resposta de texto após várias tentativas.")
+            return "Desculpe, não consegui processar a informação. Pode perguntar de novo?"
+
         else:
             return f"Erro: Ferramenta '{tool_name}' não encontrada."
 

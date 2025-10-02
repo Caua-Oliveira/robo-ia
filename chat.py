@@ -7,7 +7,7 @@ from audio import speech_to_text, text_to_speech, text_to_speech_genai
 from queries import build_system_instruction
 from tools import get_locais, get_coordenacao, AVAILABLE_TOOLS
 
-# Regex para detectar a frase de ativação "Ei Cleiton" ou "Cleiton"
+# Regex para detectar a frase de ativação "Ei", "E aí" ou "Jorgina"
 USE_ACTIVATION_PHRASE = True
 ACTIVATION_REGEX = re.compile(r'^\s*(?:e(?:\s*a[ií]|i)\s|jorgina|georgina|regina|vagina )\b[\s,]*', re.IGNORECASE)
 

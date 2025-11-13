@@ -2,14 +2,16 @@ import sys
 import re
 import pyaudio
 import webrtcvad
+import keyboard
 from config import *
 from audio import speech_to_text, text_to_speech, text_to_speech_genai
 from queries import build_system_instruction
 from tools import get_locais, get_coordenacao, AVAILABLE_TOOLS
 
-# Regex para detectar a frase de ativação "Ei", "E aí" ou "Jorgina"
+# Regex para detectar a frase de ativação "Ei", "E aí" ou "Jorgina" em QUALQUER LUGAR
 USE_ACTIVATION_PHRASE = True
-ACTIVATION_REGEX = re.compile(r'^\s*(?:e(?:\s*a[ií]|i)\s|jorgina|georgina|regina|vagina )\b[\s,]*', re.IGNORECASE)
+# <--- MODIFICADO: Removemos o '^' do início e ajustamos o \b
+ACTIVATION_REGEX = re.compile(r'\b(?:e\s*a|jorgina|georgina|regina|vagina)\b[\s,]*', re.IGNORECASE)
 
 USER_QUESTIONS = []
 chat_session = None
@@ -37,6 +39,13 @@ def listen_with_vad() -> sr.AudioData | None:
     silent_chunks = 0
 
     while True:
+        # Verifica a interrupção manual pela barra de espaço
+        if keyboard.is_pressed("space"):
+            if started:  # Só interrompe se a gravação já começou
+                print("Interrupção manual (espaço) detectada, processando...")
+                break  # Sai do loop como se o silêncio fosse detectado
+            # Se não começou, o espaço é ignorado e o loop continua
+
         audio_chunk = stream.read(VAD_CHUNK_SIZE)
         is_speech = vad.is_speech(audio_chunk, VAD_SAMPLE_RATE)
 
@@ -113,8 +122,12 @@ def start_chat_vad():
 def extract_question(text: str) -> str:
     if not USE_ACTIVATION_PHRASE:
         return text.strip()
-    m = ACTIVATION_REGEX.match(text)
+
+    # <--- MODIFICADO: Trocamos .match() por .search()
+    m = ACTIVATION_REGEX.search(text)
+
     if not m: return ""
+    # Retorna tudo o que foi dito APÓS a palavra de ativação
     return text[m.end():].strip() or "Olá"
 
 
